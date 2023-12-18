@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 2",
+	"properties": {
+		"content": {
+			"query": "DROP TABLE [dbo].[Table]\nCREATE TABLE [dbo].[Table]\n(\n   school     VARCHAR(2)\n  ,sex        VARCHAR(1)\n  ,age        INTEGER \n  ,address    VARCHAR(1)\n  ,famsize    VARCHAR(3)\n  ,Pstatus    VARCHAR(1)\n  ,Medu       INTEGER \n  ,Fedu       INTEGER \n  ,Mjob       VARCHAR(8)\n  ,Fjob       VARCHAR(8)\n  ,reason     VARCHAR(10)\n  ,guardian   VARCHAR(6)\n  ,traveltime INTEGER \n  ,studytime  INTEGER \n  ,failures   INTEGER \n  ,schoolsup  VARCHAR(3)\n  ,famsup     VARCHAR(3)\n  ,paid       VARCHAR(3)\n  ,activities VARCHAR(3)\n  ,nursery    VARCHAR(3)\n  ,higher     VARCHAR(3)\n  ,internet   VARCHAR(3)\n  ,romantic   VARCHAR(3)\n  ,famrel     INTEGER \n  ,freetime   INTEGER \n  ,goout      INTEGER \n  ,Dalc       INTEGER \n  ,Walc       INTEGER \n  ,health     INTEGER \n  ,absences   INTEGER \n  ,G1         INTEGER \n  ,G2         INTEGER \n  ,G3         INTEGER \n)\nWITH\n(\n    DISTRIBUTION = HASH (school),\n    CLUSTERED COLUMNSTORE INDEX\n)\nGO\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "dedicatedsqlpoolltd",
+				"poolName": "dedicatedsqlpoolltd"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

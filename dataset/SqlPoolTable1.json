@@ -1,0 +1,166 @@
+{
+	"name": "SqlPoolTable1",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "school",
+				"type": "varchar"
+			},
+			{
+				"name": "sex",
+				"type": "varchar"
+			},
+			{
+				"name": "age",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "address",
+				"type": "varchar"
+			},
+			{
+				"name": "famsize",
+				"type": "varchar"
+			},
+			{
+				"name": "Pstatus",
+				"type": "varchar"
+			},
+			{
+				"name": "Medu",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Fedu",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Mjob",
+				"type": "varchar"
+			},
+			{
+				"name": "Fjob",
+				"type": "varchar"
+			},
+			{
+				"name": "reason",
+				"type": "varchar"
+			},
+			{
+				"name": "guardian",
+				"type": "varchar"
+			},
+			{
+				"name": "traveltime",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "studytime",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "failures",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "schoolsup",
+				"type": "varchar"
+			},
+			{
+				"name": "famsup",
+				"type": "varchar"
+			},
+			{
+				"name": "paid",
+				"type": "varchar"
+			},
+			{
+				"name": "activities",
+				"type": "varchar"
+			},
+			{
+				"name": "nursery",
+				"type": "varchar"
+			},
+			{
+				"name": "higher",
+				"type": "varchar"
+			},
+			{
+				"name": "internet",
+				"type": "varchar"
+			},
+			{
+				"name": "romantic",
+				"type": "varchar"
+			},
+			{
+				"name": "famrel",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "freetime",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "goout",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dalc",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Walc",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "health",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "absences",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "G1",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "G2",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "G3",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Table"
+		},
+		"sqlPool": {
+			"referenceName": "dedicatedsqlpoolltd",
+			"type": "SqlPoolReference"
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

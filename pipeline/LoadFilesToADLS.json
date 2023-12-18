@@ -1,0 +1,597 @@
+{
+	"name": "LoadFilesToADLS",
+	"properties": {
+		"description": "Move files from one folder to another folder",
+		"activities": [
+			{
+				"name": "GetFileList",
+				"description": "Get the list of file",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Students_DataCSVfiles",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEachFile",
+				"description": "Iterate each file, and move them one by one.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetFileList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetFileList').output.childItems",
+						"type": "Expression"
+					},
+					"batchCount": 20,
+					"activities": [
+						{
+							"name": "BlobToSynapseDedicatedPool",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "synapse/Input/item()"
+								},
+								{
+									"name": "Destination",
+									"value": "dbo.Table"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": "Input",
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlPoolSink",
+									"allowCopyCommand": true
+								},
+								"enableStaging": false,
+								"enableSkipIncompatibleRow": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "school",
+												"type": "String"
+											},
+											"sink": {
+												"name": "school",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "sex",
+												"type": "String"
+											},
+											"sink": {
+												"name": "sex",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "age",
+												"type": "String"
+											},
+											"sink": {
+												"name": "age",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "address",
+												"type": "String"
+											},
+											"sink": {
+												"name": "address",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "famsize",
+												"type": "String"
+											},
+											"sink": {
+												"name": "famsize",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Pstatus",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Pstatus",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Medu",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Medu",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Fedu",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Fedu",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Mjob",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Mjob",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Fjob",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Fjob",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "reason",
+												"type": "String"
+											},
+											"sink": {
+												"name": "reason",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "guardian",
+												"type": "String"
+											},
+											"sink": {
+												"name": "guardian",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "traveltime",
+												"type": "String"
+											},
+											"sink": {
+												"name": "traveltime",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "studytime",
+												"type": "String"
+											},
+											"sink": {
+												"name": "studytime",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "failures",
+												"type": "String"
+											},
+											"sink": {
+												"name": "failures",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "schoolsup",
+												"type": "String"
+											},
+											"sink": {
+												"name": "schoolsup",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "famsup",
+												"type": "String"
+											},
+											"sink": {
+												"name": "famsup",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "paid",
+												"type": "String"
+											},
+											"sink": {
+												"name": "paid",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "activities",
+												"type": "String"
+											},
+											"sink": {
+												"name": "activities",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "nursery",
+												"type": "String"
+											},
+											"sink": {
+												"name": "nursery",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "higher",
+												"type": "String"
+											},
+											"sink": {
+												"name": "higher",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "internet",
+												"type": "String"
+											},
+											"sink": {
+												"name": "internet",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "romantic",
+												"type": "String"
+											},
+											"sink": {
+												"name": "romantic",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "famrel",
+												"type": "String"
+											},
+											"sink": {
+												"name": "famrel",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "freetime",
+												"type": "String"
+											},
+											"sink": {
+												"name": "freetime",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "goout",
+												"type": "String"
+											},
+											"sink": {
+												"name": "goout",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Dalc",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Dalc",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Walc",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Walc",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "health",
+												"type": "String"
+											},
+											"sink": {
+												"name": "health",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "absences",
+												"type": "String"
+											},
+											"sink": {
+												"name": "absences",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "G1",
+												"type": "String"
+											},
+											"sink": {
+												"name": "G1",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "G2",
+												"type": "String"
+											},
+											"sink": {
+												"name": "G2",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "G3",
+												"type": "String"
+											},
+											"sink": {
+												"name": "G3",
+												"type": "Int32"
+											}
+										}
+									]
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Students_DataCSVfiles",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlPoolTable1",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Move Success File",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "BlobToSynapseDedicatedPool",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".csv"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Students_DataCSVfiles",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DelimitedText1",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Move Failure File",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "BlobToSynapseDedicatedPool",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".csv"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Students_DataCSVfiles",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DelimitedText2",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-12-13T22:43:34Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}
