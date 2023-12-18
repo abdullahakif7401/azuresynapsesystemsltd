@@ -18,14 +18,11 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "38e698d4-b38a-4f40-9d48-48cbbe692daa"
+				"spark.autotune.trackingId": "68010af6-672d-47c0-bb7d-173a42490f06"
 			}
 		},
 		"metadata": {
 			"saveOutput": true,
-			"synapse_widget": {
-				"version": "0.1"
-			},
 			"enableDebugMode": false,
 			"kernelspec": {
 				"name": "synapse_pyspark",
@@ -41,14 +38,13 @@
 				"endpoint": "https://azuresynapseanalyticsworkshopltd.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/apachesparkpool",
 				"auth": {
 					"type": "AAD",
-					"authResource": "https://dev.azuresynapse.net",
-					"authHeader": null
+					"authResource": "https://dev.azuresynapse.net"
 				},
 				"sparkVersion": "3.4",
 				"nodeCount": 10,
 				"cores": 4,
 				"memory": 28,
-				"extraHeader": null
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
@@ -75,7 +71,7 @@
 					"from pyspark.sql import SparkSession\r\n",
 					"from pyspark.sql.types import StructType, StructField, StringType, IntegerType"
 				],
-				"execution_count": 20
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
@@ -97,7 +93,7 @@
 					"directory_path = \"Input\"\r\n",
 					"storage_account_key = \"SXYxW+DFDjNmisynrebHRkTXDcX4kuZIFb8Z/JmS4X+WBPLKRTijFAYjBiS9WsVrpbIiT/KphL0P+ASt3tZ6PQ==\""
 				],
-				"execution_count": 21
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
@@ -119,51 +115,7 @@
 					"    .config(\"fs.azure.account.key.\"+account_name+\".dfs.core.windows.net\", storage_account_key) \\\r\n",
 					"    .getOrCreate()"
 				],
-				"execution_count": 22
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"# Define the ADLS Gen2 path\r\n",
-					"adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, directory_path)"
-				],
-				"execution_count": 23
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"# List CSV files in the specified directory\r\n",
-					"csv_files = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jsc.hadoopConfiguration()).listStatus(spark._jvm.org.apache.hadoop.fs.Path(adls_path))\r\n",
-					"csv_file_abfss = []\r\n",
-					"# Display the list of CSV files\r\n",
-					"for file_status in csv_files:\r\n",
-					"    file_path = str(file_status.getPath())\r\n",
-					"    if file_path.endswith(\".csv\"):\r\n",
-					"        csv_file_abfss.append(file_path)"
-				],
-				"execution_count": 24
+				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
@@ -216,7 +168,7 @@
 					"    StructField(\"G3\", IntegerType(), True)\r\n",
 					"])"
 				],
-				"execution_count": 25
+				"execution_count": 8
 			},
 			{
 				"cell_type": "code",
@@ -232,6 +184,17 @@
 					}
 				},
 				"source": [
+					"# Define the ADLS Gen2 path\r\n",
+					"adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, directory_path)\r\n",
+					"# List CSV files in the specified directory\r\n",
+					"csv_files = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jsc.hadoopConfiguration()).listStatus(spark._jvm.org.apache.hadoop.fs.Path(adls_path))\r\n",
+					"csv_file_abfss = []\r\n",
+					"# Display the list of CSV files\r\n",
+					"for file_status in csv_files:\r\n",
+					"    file_path = str(file_status.getPath())\r\n",
+					"    if file_path.endswith(\".csv\"):\r\n",
+					"        csv_file_abfss.append(file_path)\r\n",
+					"\r\n",
 					"for csv_file_path in csv_file_abfss:\r\n",
 					"    # Read the CSV file with the specified schema\r\n",
 					"    df = spark.read.options(inferschema=True).csv(csv_file_path, header=True)\r\n",
@@ -240,13 +203,14 @@
 					"    if df.schema == sql_db_schema:\r\n",
 					"        success_adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, \"Success\")\r\n",
 					"        df.write.csv(success_adls_path, header=True, mode=\"overwrite\")\r\n",
+					"        df.write.saveAsTable('student', format=\"parquet\", mode=\"overwrite\")\r\n",
 					"        print(f\"{csv_file_path} is consistent with the schema.\")\r\n",
 					"    else:\r\n",
 					"        success_adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, \"Failure\")\r\n",
 					"        df.write.csv(success_adls_path, header=True, mode=\"overwrite\")\r\n",
 					"        print(f\"{csv_file_path} does not match the specified schema.\")"
 				],
-				"execution_count": 28
+				"execution_count": 11
 			}
 		]
 	}
