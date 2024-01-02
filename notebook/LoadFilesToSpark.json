@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "84ad2cc6-ae8a-4590-b820-bc0ced159b28"
+				"spark.autotune.trackingId": "d65082b4-e8ed-47df-91d0-10718c3802ee"
 			}
 		},
 		"metadata": {
@@ -120,7 +120,7 @@
 					"failure_location = config.get('paths', 'failure_adls_path')\r\n",
 					"sql_db_schema_fromconfig = config.get('schema', 'sql_db_schema')"
 				],
-				"execution_count": 3
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
