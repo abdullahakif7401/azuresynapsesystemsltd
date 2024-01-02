@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "d65082b4-e8ed-47df-91d0-10718c3802ee"
+				"spark.autotune.trackingId": "61829b96-8d46-44ea-86ea-f883167c100a"
 			}
 		},
 		"metadata": {
@@ -82,9 +82,10 @@
 					"\r\n",
 					"from pyspark.sql import SparkSession\r\n",
 					"from pyspark.sql.types import StructType, StructField, StringType, IntegerType\r\n",
-					"import configparser"
+					"from configparser import ConfigParser\r\n",
+					"import shutil"
 				],
-				"execution_count": 1
+				"execution_count": 70
 			},
 			{
 				"cell_type": "markdown",
@@ -114,34 +115,18 @@
 				},
 				"source": [
 					"config = configparser.ConfigParser()\r\n",
-					"config.read(r'abfss://synapse@azuresynapseanalyticstem.dfs.core.windows.net/Configurations/config.ini')\r\n",
-					"input_location = config.get('paths', 'adls_path')\r\n",
+					"mssparkutils.fs.cp(\"abfss://synapse@azuresynapseanalyticstem.dfs.core.windows.net/Configurations/config.ini\",\"file:/tmp/conf.ini\")\r\n",
+					"config.read(r'/tmp/conf.ini')\r\n",
+					"account_name = config.get('variables', 'account_name')\r\n",
+					"container_name = config.get('variables', 'container_name')\r\n",
+					"directory_path = config.get('variables', 'directory_path')\r\n",
+					"storage_account_key = config.get('variables', 'storage_account_key')\r\n",
+					"input_location = config.get('paths', 'input_adls_path')\r\n",
 					"success_location = config.get('paths', 'success_adls_path')\r\n",
 					"failure_location = config.get('paths', 'failure_adls_path')\r\n",
 					"sql_db_schema_fromconfig = config.get('schema', 'sql_db_schema')"
 				],
-				"execution_count": 5
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"# account_name = \"azuresynapseanalyticstem\"\r\n",
-					"# container_name = \"synapse\"\r\n",
-					"# directory_path = \"Input\"\r\n",
-					"# storage_account_key = \"SXYxW+DFDjNmisynrebHRkTXDcX4kuZIFb8Z/JmS4X+WBPLKRTijFAYjBiS9WsVrpbIiT/KphL0P+ASt3tZ6PQ==\""
-				],
-				"execution_count": 2
+				"execution_count": 41
 			},
 			{
 				"cell_type": "markdown",
@@ -175,7 +160,7 @@
 					"    .config(\"fs.azure.account.key.\"+account_name+\".dfs.core.windows.net\", storage_account_key) \\\r\n",
 					"    .getOrCreate()"
 				],
-				"execution_count": 3
+				"execution_count": 42
 			},
 			{
 				"cell_type": "markdown",
@@ -214,10 +199,10 @@
 					"    db_schema = StructType()\r\n",
 					"    for i in split_values:\r\n",
 					"        x = i.split(\" \")\r\n",
-					"        sch.add(x[0], dtypes[x[1]], True)\r\n",
+					"        db_schema.add(x[0], dtypes[x[1]], True)\r\n",
 					"    return db_schema"
 				],
-				"execution_count": null
+				"execution_count": 57
 			},
 			{
 				"cell_type": "code",
@@ -233,6 +218,7 @@
 					}
 				},
 				"source": [
+					"# sql_db_schema = read_schema(sql_db_schema_fromconfig)\r\n",
 					"sql_db_schema = StructType([\r\n",
 					"    StructField(\"school\", StringType(), True),\r\n",
 					"    StructField(\"sex\", StringType(), True),\r\n",
@@ -267,9 +253,10 @@
 					"    StructField(\"G1\", IntegerType(), True),\r\n",
 					"    StructField(\"G2\", IntegerType(), True),\r\n",
 					"    StructField(\"G3\", IntegerType(), True)\r\n",
-					"])"
+					"])\r\n",
+					"# print(sql_db_schema)"
 				],
-				"execution_count": 4
+				"execution_count": 59
 			},
 			{
 				"cell_type": "markdown",
@@ -300,9 +287,9 @@
 				},
 				"source": [
 					"# Define the ADLS Gen2 path\r\n",
-					"adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, directory_path)\r\n",
+					"# adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, directory_path)\r\n",
 					"# List CSV files in the specified directory\r\n",
-					"csv_files = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jsc.hadoopConfiguration()).listStatus(spark._jvm.org.apache.hadoop.fs.Path(adls_path))\r\n",
+					"csv_files = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jsc.hadoopConfiguration()).listStatus(spark._jvm.org.apache.hadoop.fs.Path(input_location))\r\n",
 					"csv_file_abfss = []\r\n",
 					"# Adding the CSV files to an Array\r\n",
 					"for file_status in csv_files:\r\n",
@@ -312,20 +299,23 @@
 					"\r\n",
 					"for csv_file_path in csv_file_abfss:\r\n",
 					"    # Read the CSV file with the specified schema\r\n",
-					"    df = spark.read.options(inferschema=True).csv(csv_file_path, header=True)\r\n",
+					"    print(csv_file_path)\r\n",
+					"    df = spark.read.options(inferschema=True).csv(csv_file_path, header=True).limit(10)\r\n",
 					"\r\n",
 					"    # Check if the DataFrame schema matches the specified schema\r\n",
 					"    if df.schema == sql_db_schema:\r\n",
-					"        success_adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, \"Success\")\r\n",
-					"        df.write.csv(success_adls_path, header=True, mode=\"overwrite\")\r\n",
-					"        df.write.saveAsTable('stg_ student', format=\"parquet\", mode=\"overwrite\")\r\n",
+					"        # success_adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, \"Success\")\r\n",
+					"        # df.write.csv(success_location, header=True, mode=\"overwrite\")\r\n",
+					"        shutil.move(csv_file_path, success_location)\r\n",
+					"        df.write.saveAsTable('stg_student', format=\"parquet\", mode=\"overwrite\")\r\n",
 					"        print(f\"{csv_file_path} is consistent with the schema.\")\r\n",
 					"    else:\r\n",
-					"        failure_adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, \"Failure\")\r\n",
-					"        df.write.csv(failure_adls_path, header=True, mode=\"overwrite\")\r\n",
+					"        # failure_adls_path = \"abfss://%s@%s.dfs.core.windows.net/%s\" % (container_name, account_name, \"Failure\")\r\n",
+					"        # df.write.csv(failure_location, header=True, mode=\"overwrite\")\r\n",
+					"        shutil.move(csv_file_path, failure_location)\r\n",
 					"        print(f\"{csv_file_path} does not match the specified schema.\")"
 				],
-				"execution_count": 5
+				"execution_count": 67
 			}
 		]
 	}
